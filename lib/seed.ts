@@ -1,4 +1,5 @@
 import { brand } from "@/config/brand";
+import { todayIso } from "@/lib/clock";
 import { toIsoDate } from "@/lib/dates";
 import type { Appointment, PaymentMethod, PaymentState } from "@/lib/types";
 
@@ -22,6 +23,12 @@ const LAST_NAMES = [
   "Ribeiro", "Santos", "Teixeira", "Vieira",
 ];
 
+/** Hoje na barbearia, à meia-noite — não o "hoje" em UTC do servidor. */
+function startOfToday() {
+  const [year, month, day] = todayIso().split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 /** Gerador linear congruente — mesmo resultado em toda execução. */
 function random(seed: number) {
   let state = seed >>> 0;
@@ -31,7 +38,7 @@ function random(seed: number) {
   };
 }
 
-export function seedAppointments(today = new Date()): Appointment[] {
+export function seedAppointments(today = startOfToday()): Appointment[] {
   const next = random(20260814);
   const pick = <T,>(list: readonly T[]): T =>
     list[Math.floor(next() * list.length)] as T;

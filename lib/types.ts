@@ -58,6 +58,11 @@ export type BrandConfig = {
   };
   /** Mostrar valores nos cards e no resumo, ou "sob consulta". */
   showPrices: boolean;
+  /**
+   * Fuso da barbearia (IANA). O servidor roda em UTC na Vercel, então tudo que
+   * é "hoje" e "já passou" precisa ser calculado aqui, não no relógio da máquina.
+   */
+  timezone: string;
   contact: {
     instagram: string;
     /** Número em formato internacional, só dígitos: 5511900000000. */

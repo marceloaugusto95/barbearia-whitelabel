@@ -31,6 +31,7 @@ export const brand: BrandConfig = {
     accentSoft: "rgba(216,168,90,0.12)",
   },
   showPrices: true,
+  timezone: "America/Sao_Paulo",
   contact: {
     instagram: "@barbeariatech",
     whatsapp: "5511900000000",

@@ -4,7 +4,8 @@ import { AppointmentCard } from "@/components/admin/AppointmentCard";
 import styles from "@/components/admin/admin.module.css";
 import { content } from "@/config/content";
 import { getSession, scopeOf } from "@/lib/auth";
-import { formatLongDate, toIsoDate } from "@/lib/dates";
+import { currentMonth, todayIso } from "@/lib/clock";
+import { formatLongDate } from "@/lib/dates";
 import { computeKpis, performanceByBarber } from "@/lib/metrics";
 import { formatBRL } from "@/lib/money";
 import { listAppointments } from "@/lib/store";
@@ -20,8 +21,8 @@ export default async function DashboardPage() {
   // Barbeiro só enxerga a própria agenda.
   const visible = scope ? all.filter((item) => item.barberId === scope) : all;
 
-  const today = toIsoDate(new Date());
-  const month = today.slice(0, 7);
+  const today = todayIso();
+  const month = currentMonth();
 
   const kpis = computeKpis(visible, today, month);
   const barbers = performanceByBarber(

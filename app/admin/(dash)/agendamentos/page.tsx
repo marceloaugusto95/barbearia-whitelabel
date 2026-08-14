@@ -5,7 +5,7 @@ import styles from "@/components/admin/admin.module.css";
 import { brand } from "@/config/brand";
 import { content } from "@/config/content";
 import { getSession, scopeOf } from "@/lib/auth";
-import { toIsoDate } from "@/lib/dates";
+import { currentMonth, todayIso } from "@/lib/clock";
 import { listAppointments } from "@/lib/store";
 import type { Appointment, AppointmentStatus } from "@/lib/types";
 
@@ -34,8 +34,8 @@ export default async function AppointmentsPage({
   const barberId = single("barbeiro") ?? "all";
 
   const scope = scopeOf(user);
-  const today = toIsoDate(new Date());
-  const month = today.slice(0, 7);
+  const today = todayIso();
+  const month = currentMonth();
 
   const all = await listAppointments();
   const visible = scope ? all.filter((item) => item.barberId === scope) : all;

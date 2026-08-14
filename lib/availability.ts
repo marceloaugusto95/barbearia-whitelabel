@@ -1,5 +1,5 @@
 import { brand } from "@/config/brand";
-import { toIsoDate } from "@/lib/dates";
+import { minutesNow, todayIso } from "@/lib/clock";
 import { activeAppointmentsOn } from "@/lib/store";
 import type { Slot } from "@/lib/types";
 
@@ -21,8 +21,8 @@ export async function getAvailability(params: {
 
   const booked = await activeAppointmentsOn(params.unitId, params.date);
   const capacity = Math.max(brand.barbers.length, 1);
-  const now = new Date();
-  const isToday = params.date === toIsoDate(now);
+  const isToday = params.date === todayIso();
+  const now = minutesNow();
 
   return unit.slots.map((time) => {
     const atThisTime = booked.filter((appointment) => appointment.time === time);
@@ -30,15 +30,15 @@ export async function getAvailability(params: {
     const barberBusy =
       params.barberId !== null &&
       atThisTime.some((appointment) => appointment.barberId === params.barberId);
+    const past = isToday && toMinutes(time) <= now;
 
-    return { time, available: !full && !barberBusy && !isPast(time, isToday, now) };
+    return { time, available: !full && !barberBusy && !past };
   });
 }
 
-function isPast(time: string, isToday: boolean, now: Date) {
-  if (!isToday) return false;
+function toMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes <= now.getHours() * 60 + now.getMinutes();
+  return hours * 60 + minutes;
 }
 
 /** Um horário específico ainda está livre? Usado ao agendar e ao reagendar. */
