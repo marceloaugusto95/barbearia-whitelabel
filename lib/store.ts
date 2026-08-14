@@ -1,102 +1,116 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { seedAppointments } from "@/lib/seed";
+import { ensureSchema, sql } from "@/lib/db";
 import type { Appointment } from "@/lib/types";
 
 /**
- * Repositório de agendamentos em arquivo JSON (`.data/appointments.json`).
- *
- * Serve para o protótipo rodar local com dados de verdade. **Não use em
- * produção**: não há transação, e em serverless o disco é efêmero e não é
- * compartilhado entre instâncias. Troque este arquivo por Postgres/Supabase
- * mantendo as funções abaixo — o resto do app só conhece esta interface.
+ * Repositório de agendamentos em Postgres.
+ * É a única porta de entrada para a agenda — o resto do app só conhece estas
+ * funções, então trocar de banco é trocar este arquivo.
  */
 
-const DATA_DIR = path.join(process.cwd(), ".data");
-const DATA_FILE = path.join(DATA_DIR, "appointments.json");
-const SEED_ENABLED = process.env.SEED_DEMO_DATA !== "false";
+type Row = {
+  id: string;
+  created_at: Date | string;
+  unit_id: string;
+  service_id: string;
+  barber_id: string | null;
+  appointment_date: string;
+  appointment_time: string;
+  customer_name: string;
+  customer_phone: string;
+  payment_method: Appointment["paymentMethod"];
+  payment_state: Appointment["paymentState"];
+  amount: number;
+  status: Appointment["status"];
+  payment_intent_id: string | null;
+};
 
-/** Fila para não perder escrita concorrente no read-modify-write. */
-let queue: Promise<unknown> = Promise.resolve();
-
-function serialize<T>(task: () => Promise<T>): Promise<T> {
-  const run = queue.then(task, task);
-  queue = run.catch(() => undefined);
-  return run;
+function toAppointment(row: Row): Appointment {
+  return {
+    id: row.id,
+    createdAt:
+      row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    unitId: row.unit_id,
+    serviceId: row.service_id,
+    barberId: row.barber_id,
+    date: row.appointment_date,
+    time: row.appointment_time,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    paymentMethod: row.payment_method,
+    paymentState: row.payment_state,
+    amount: row.amount,
+    status: row.status,
+    paymentIntentId: row.payment_intent_id,
+  };
 }
 
-async function readFile(): Promise<Appointment[]> {
-  try {
-    return JSON.parse(await fs.readFile(DATA_FILE, "utf8")) as Appointment[];
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-    const initial = SEED_ENABLED ? seedAppointments() : [];
-    await writeFile(initial);
-    return initial;
-  }
-}
-
-async function writeFile(appointments: Appointment[]) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(DATA_FILE, JSON.stringify(appointments, null, 2), "utf8");
-}
-
-export function listAppointments(): Promise<Appointment[]> {
-  return serialize(readFile);
+export async function listAppointments(): Promise<Appointment[]> {
+  await ensureSchema();
+  const rows = (await sql()`
+    select * from appointments
+    order by appointment_date desc, appointment_time desc
+  `) as Row[];
+  return rows.map(toAppointment);
 }
 
 export async function getAppointment(id: string): Promise<Appointment | null> {
-  const all = await listAppointments();
-  return all.find((appointment) => appointment.id === id) ?? null;
+  await ensureSchema();
+  const rows = (await sql()`select * from appointments where id = ${id}`) as Row[];
+  return rows[0] ? toAppointment(rows[0]) : null;
 }
 
-export function createAppointment(
+export async function createAppointment(
   data: Omit<Appointment, "id" | "createdAt">,
 ): Promise<Appointment> {
-  return serialize(async () => {
-    const all = await readFile();
-    const appointment: Appointment = {
-      ...data,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    };
-    await writeFile([...all, appointment]);
-    return appointment;
-  });
+  await ensureSchema();
+  const rows = (await sql()`
+    insert into appointments (
+      id, unit_id, service_id, barber_id, appointment_date, appointment_time,
+      customer_name, customer_phone, payment_method, payment_state, amount,
+      status, payment_intent_id
+    ) values (
+      ${crypto.randomUUID()}, ${data.unitId}, ${data.serviceId}, ${data.barberId},
+      ${data.date}, ${data.time}, ${data.customerName}, ${data.customerPhone},
+      ${data.paymentMethod}, ${data.paymentState}, ${data.amount},
+      ${data.status}, ${data.paymentIntentId}
+    )
+    returning *
+  `) as Row[];
+  return toAppointment(rows[0]);
 }
 
-export function updateAppointment(
-  id: string,
-  patch: Partial<Omit<Appointment, "id" | "createdAt">>,
-): Promise<Appointment | null> {
-  return serialize(async () => {
-    const all = await readFile();
-    const index = all.findIndex((appointment) => appointment.id === id);
-    if (index === -1) return null;
+/** Campos que o painel e o checkout realmente alteram. */
+type AppointmentPatch = Partial<
+  Pick<Appointment, "status" | "paymentState" | "date" | "time" | "paymentIntentId">
+>;
 
-    const updated = { ...all[index], ...patch } as Appointment;
-    const next = [...all];
-    next[index] = updated;
-    await writeFile(next);
-    return updated;
-  });
+export async function updateAppointment(
+  id: string,
+  patch: AppointmentPatch,
+): Promise<Appointment | null> {
+  await ensureSchema();
+  const rows = (await sql()`
+    update appointments set
+      status = coalesce(${patch.status ?? null}, status),
+      payment_state = coalesce(${patch.paymentState ?? null}, payment_state),
+      appointment_date = coalesce(${patch.date ?? null}, appointment_date),
+      appointment_time = coalesce(${patch.time ?? null}, appointment_time),
+      payment_intent_id = coalesce(${patch.paymentIntentId ?? null}, payment_intent_id)
+    where id = ${id}
+    returning *
+  `) as Row[];
+  return rows[0] ? toAppointment(rows[0]) : null;
 }
 
 /** Marca como pago o agendamento ligado a uma intenção de pagamento aprovada. */
-export function markPaidByIntent(intentId: string): Promise<Appointment | null> {
-  return serialize(async () => {
-    const all = await readFile();
-    const index = all.findIndex(
-      (appointment) => appointment.paymentIntentId === intentId,
-    );
-    if (index === -1) return null;
-    if (all[index].paymentState === "paid") return all[index];
-
-    const next = [...all];
-    next[index] = { ...all[index], paymentState: "paid" };
-    await writeFile(next);
-    return next[index];
-  });
+export async function markPaidByIntent(intentId: string): Promise<Appointment | null> {
+  await ensureSchema();
+  const rows = (await sql()`
+    update appointments set payment_state = 'paid'
+    where payment_intent_id = ${intentId} and payment_state <> 'paid'
+    returning *
+  `) as Row[];
+  return rows[0] ? toAppointment(rows[0]) : null;
 }
 
 /** Agendamentos que ocupam a agenda de um dia (cancelados liberam o horário). */
@@ -104,11 +118,12 @@ export async function activeAppointmentsOn(
   unitId: string,
   date: string,
 ): Promise<Appointment[]> {
-  const all = await listAppointments();
-  return all.filter(
-    (appointment) =>
-      appointment.unitId === unitId &&
-      appointment.date === date &&
-      appointment.status !== "cancelled",
-  );
+  await ensureSchema();
+  const rows = (await sql()`
+    select * from appointments
+    where unit_id = ${unitId}
+      and appointment_date = ${date}
+      and status <> 'cancelled'
+  `) as Row[];
+  return rows.map(toAppointment);
 }
