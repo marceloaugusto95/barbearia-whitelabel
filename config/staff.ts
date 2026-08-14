@@ -35,7 +35,9 @@ export const staff: StaffUser[] = [
 export const DEMO_PASSWORD = "barbearia123";
 
 export function passwordFor(user: StaffUser): string | null {
-  const fromEnv = process.env[`STAFF_PASSWORD_${user.username.toUpperCase()}`];
+  // `.trim()` porque valor colado no painel costuma vir com espaço ou quebra
+  // de linha grudada — e aí o login falha sem explicação.
+  const fromEnv = process.env[`STAFF_PASSWORD_${user.username.toUpperCase()}`]?.trim();
   if (fromEnv) return fromEnv;
   return process.env.NODE_ENV === "production" ? null : DEMO_PASSWORD;
 }
