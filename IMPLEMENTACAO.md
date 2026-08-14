@@ -129,18 +129,38 @@ A tela de agendamentos filtra por período, situação, unidade e profissional.
 
 ## Persistência
 
-`lib/store.ts` grava os agendamentos em `.data/appointments.json`. Serve para o protótipo
-rodar local com dados de verdade; **não é para produção** (sem transação, e em serverless o
-disco é efêmero e não é compartilhado). Troque este arquivo por Postgres/Supabase mantendo as
-funções — o resto do app só conhece essa interface.
+Postgres (Neon, provisionado pelo Vercel Marketplace). `lib/db.ts` abre a conexão de forma
+preguiçosa — `DATABASE_URL` não é lida no topo do módulo, senão o `next build` quebraria antes
+de o banco existir — e cria a tabela `appointments` na primeira consulta de cada instância.
+`lib/store.ts` é a única porta de entrada da agenda: trocar de banco é trocar esse arquivo.
 
-Na primeira leitura, a base é semeada com ~220 agendamentos de demonstração (60 dias de
-histórico + próximos dias), determinísticos. Desligue com `SEED_DEMO_DATA=false` e apague
-`.data/appointments.json` ao ligar a base real.
+Numa operação real, prefira **migrações versionadas** (Drizzle/Prisma) ao
+`create table if not exists` que está aqui.
+
+Se a tabela estiver vazia, ela é semeada com ~220 agendamentos de demonstração (60 dias de
+histórico + próximos dias), determinísticos e com ids fixos (`seed-N`), então instâncias
+concorrentes não duplicam nada. Para operar de verdade: `SEED_DEMO_DATA=false` e
+`delete from appointments where id like 'seed-%'`.
+
+Rodando local, é preciso ter as variáveis do banco: `vercel env pull .env.local`.
 
 Com a agenda gravada, a disponibilidade deixou de ser simulada: o horário some quando o
 profissional já tem atendimento, "sem preferência" só some quando todos estão ocupados, e
 horário que já passou hoje não aparece.
+
+## Deploy
+
+- Repositório privado: `marceloaugusto95/barbearia-whitelabel`.
+- Projeto na Vercel: `barbeariatech` — https://barbeariatech.vercel.app · painel em `/admin`.
+  Push na `main` dispara deploy.
+- Banco: Neon Postgres pelo Marketplace (`vercel integration add neon`), que injeta
+  `DATABASE_URL` sozinho.
+- Variáveis em Production e Preview: `AUTH_SECRET`, `STAFF_PASSWORD_ADMIN`,
+  `STAFF_PASSWORD_RAFA`, `STAFF_PASSWORD_TEO`, `STAFF_PASSWORD_JONAS`, `SEED_DEMO_DATA`.
+- Domínio próprio: nada configurado ainda; ligar depois em Settings → Domains não exige
+  mudança de código.
+- Não use o Deployment Protection da Vercel para trancar o `/admin` — ele tranca o site
+  inteiro, e o painel já tem login próprio.
 
 ## Divergências conscientes do protótipo
 
