@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet" />
+<style>
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #0e0d0c; color: #f5f2ee; font-family: "DM Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #d8a85a; text-decoration: none; }
+  a:hover { color: #f0c884; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; overflow-x: hidden">
+
+  <header style="position: sticky; top: 0; z-index: 40; backdrop-filter: blur(14px); background: rgba(14,13,12,0.82); border-bottom: 1px solid rgba(245,242,238,0.08)">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px">
+      <a href="#top" style="display: flex; align-items: center; gap: 10px; color: #f5f2ee">
+        <span style="width: 34px; height: 34px; border-radius: 9px; background: #d8a85a; color: #0e0d0c; display: grid; place-items: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 17px">B</span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase">{{ brandName }}</span>
+      </a>
+
+      <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+        <nav style="display: flex; align-items: center; gap: 30px">
+          <a href="#servicos" style="color: #cfc9c1; font-size: 15px">Serviços</a>
+          <a href="#unidades" style="color: #cfc9c1; font-size: 15px">Unidades</a>
+          <a href="#galeria" style="color: #cfc9c1; font-size: 15px">Galeria</a>
+          <a href="#depoimentos" style="color: #cfc9c1; font-size: 15px">Clientes</a>
+          <button onClick="{{ openBooking }}" style="border: 0; cursor: pointer; background: #d8a85a; color: #0e0d0c; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 15px; padding: 11px 20px; border-radius: 999px" style-hover="background: #f0c884">Agendar</button>
+        </nav>
+      </sc-if>
+
+      <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ toggleMenu }}" aria-label="Menu" style="width: 46px; height: 46px; border-radius: 12px; border: 1px solid rgba(245,242,238,0.16); background: transparent; cursor: pointer; display: grid; place-items: center; gap: 5px; padding: 13px 11px">
+          <span style="display: block; width: 100%; height: 2px; background: #f5f2ee; border-radius: 2px"></span>
+          <span style="display: block; width: 100%; height: 2px; background: #f5f2ee; border-radius: 2px"></span>
+          <span style="display: block; width: 100%; height: 2px; background: #f5f2ee; border-radius: 2px"></span>
+        </button>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+      <nav style="display: grid; padding: 8px 20px 22px; gap: 4px; animation: fadeIn 0.18s ease">
+        <a href="#servicos" onClick="{{ closeMenu }}" style="color: #f5f2ee; font-size: 18px; padding: 14px 4px; border-bottom: 1px solid rgba(245,242,238,0.07)">Serviços</a>
+        <a href="#unidades" onClick="{{ closeMenu }}" style="color: #f5f2ee; font-size: 18px; padding: 14px 4px; border-bottom: 1px solid rgba(245,242,238,0.07)">Unidades</a>
+        <a href="#galeria" onClick="{{ closeMenu }}" style="color: #f5f2ee; font-size: 18px; padding: 14px 4px; border-bottom: 1px solid rgba(245,242,238,0.07)">Galeria</a>
+        <a href="#depoimentos" onClick="{{ closeMenu }}" style="color: #f5f2ee; font-size: 18px; padding: 14px 4px; border-bottom: 1px solid rgba(245,242,238,0.07)">Clientes</a>
+        <button onClick="{{ openBooking }}" style="margin-top: 12px; width: 100%; border: 0; cursor: pointer; background: #d8a85a; color: #0e0d0c; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 17px; padding: 16px; border-radius: 14px">Agendar horário</button>
+      </nav>
+    </sc-if>
+  </header>
+
+  <section id="top" style="position: relative; padding: clamp(56px, 9vw, 120px) 20px clamp(64px, 8vw, 110px)">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: clamp(32px, 5vw, 64px); align-items: center">
+      <div style="animation: riseIn 0.5s ease both">
+        <p style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: #d8a85a; margin: 0 0 18px">Barbearia · desde 2019</p>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(38px, 7vw, 66px); line-height: 1.03; letter-spacing: -0.02em; margin: 0 0 20px; text-wrap: balance">Aqui, sua experiência vai além de um corte.</h1>
+        <p style="font-size: clamp(16px, 2vw, 18px); line-height: 1.6; color: #a29c94; max-width: 46ch; margin: 0 0 32px; text-wrap: pretty">Cortes precisos, barba desenhada no detalhe e um ambiente feito para você relaxar. Agende em segundos, direto do celular.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <button onClick="{{ openBooking }}" style="border: 0; cursor: pointer; background: #d8a85a; color: #0e0d0c; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 17px; padding: 16px 28px; border-radius: 999px" style-hover="background: #f0c884">Faça seu agendamento</button>
+          <a href="#servicos" style="display: inline-flex; align-items: center; padding: 16px 28px; border-radius: 999px; border: 1px solid rgba(245,242,238,0.2); color: #f5f2ee; font-size: 17px" style-hover="border-color: #d8a85a">Ver serviços</a>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 28px; margin-top: 44px">
+          <div>
+            <p style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; margin: 0">4 unidades</p>
+            <p style="font-size: 14px; color: #79736c; margin: 4px 0 0">em toda a cidade</p>
+          </div>
+          <div>
+            <p style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; margin: 0">4,9 / 5</p>
+            <p style="font-size: 14px; color: #79736c; margin: 4px 0 0">+1.200 avaliações</p>
+          </div>
+        </div>
+      </div>
+      <div style="border-radius: 20px; overflow: hidden; border: 1px solid rgba(245,242,238,0.1); aspect-ratio: 4 / 5; min-height: 300px; background: repeating-linear-gradient(135deg, #1b1917 0 14px, #171614 14px 28px); display: grid; place-items: center; padding: 24px">
+        <p style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6f6862; text-align: center; letter-spacing: 0.08em">[ foto principal — barbeiro atendendo cliente ]</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="servicos" style="padding: clamp(56px, 7vw, 100px) 20px; background: #131211; border-top: 1px solid rgba(245,242,238,0.07)">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <p style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: #d8a85a; margin: 0 0 14px">Nossos serviços</p>
+      <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(28px, 4.4vw, 44px); line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 44px; max-width: 22ch">Cada serviço com tempo certo e preço claro</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px">
+        <sc-for list="{{ services }}" as="s" hint-placeholder-count="4">
+          <article style="background: #1a1816; border: 1px solid rgba(245,242,238,0.08); border-radius: 18px; padding: 26px 24px 24px; display: flex; flex-direction: column; gap: 12px" style-hover="border-color: rgba(216,168,90,0.5)">
+            <p style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.16em; color: #79736c; margin: 0">{{ s.duration }}</p>
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 21px; margin: 0">{{ s.name }}</h3>
+            <p style="font-size: 15px; line-height: 1.55; color: #a29c94; margin: 0; flex: 1; text-wrap: pretty">{{ s.desc }}</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px">
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; color: #d8a85a">{{ s.priceLabel }}</span>
+              <button onClick="{{ s.book }}" style="border: 1px solid rgba(245,242,238,0.18); background: transparent; color: #f5f2ee; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 11px 18px; border-radius: 999px; min-height: 44px" style-hover="background: #d8a85a; color: #0e0d0c; border-color: #d8a85a">Agendar</button>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="galeria" style="padding: clamp(56px, 7vw, 100px) 20px">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <div style="display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 36px">
+        <div>
+          <p style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: #d8a85a; margin: 0 0 14px">Galeria</p>
+          <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(28px, 4.4vw, 44px); letter-spacing: -0.015em; margin: 0">O trabalho por dentro</h2>
+        </div>
+        <p style="font-size: 15px; color: #a29c94; max-width: 34ch; margin: 0">Ambientes, cortes e detalhes. Substitua cada quadro pelas fotos da sua barbearia.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px">
+        <sc-for list="{{ gallery }}" as="g" hint-placeholder-count="6">
+          <div style="aspect-ratio: 1 / 1; border-radius: 14px; border: 1px solid rgba(245,242,238,0.09); background: repeating-linear-gradient(135deg, #1b1917 0 12px, #161513 12px 24px); display: grid; place-items: center; padding: 16px">
+            <p style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6f6862; text-align: center; letter-spacing: 0.06em">{{ g }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="unidades" style="padding: clamp(56px, 7vw, 100px) 20px; background: #131211; border-top: 1px solid rgba(245,242,238,0.07); border-bottom: 1px solid rgba(245,242,238,0.07)">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <p style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: #d8a85a; margin: 0 0 14px">Nossas unidades</p>
+      <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(28px, 4.4vw, 44px); letter-spacing: -0.015em; margin: 0 0 12px">Escolha a mais perto de você</h2>
+      <p style="font-size: 16px; color: #a29c94; margin: 0 0 40px; max-width: 52ch; text-wrap: pretty">Todas com o mesmo padrão de atendimento, cadeiras reclináveis e café por conta da casa.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+        <sc-for list="{{ units }}" as="u" hint-placeholder-count="4">
+          <article style="background: #1a1816; border: 1px solid rgba(245,242,238,0.08); border-radius: 18px; overflow: hidden">
+            <div style="height: 120px; background: repeating-linear-gradient(135deg, #211e1b 0 12px, #1b1917 12px 24px); display: grid; place-items: center">
+              <p style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6f6862; margin: 0">[ fachada ]</p>
+            </div>
+            <div style="padding: 22px 22px 24px; display: grid; gap: 8px">
+              <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin: 0">{{ u.name }}</h3>
+              <p style="font-size: 15px; color: #a29c94; margin: 0; line-height: 1.5">{{ u.address }}</p>
+              <p style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #79736c; margin: 4px 0 0">{{ u.hours }}</p>
+              <button onClick="{{ u.book }}" style="margin-top: 14px; width: 100%; min-height: 46px; border: 1px solid rgba(245,242,238,0.18); background: transparent; color: #f5f2ee; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 12px; border-radius: 12px" style-hover="background: #d8a85a; color: #0e0d0c; border-color: #d8a85a">Agendar nesta unidade</button>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="depoimentos" style="padding: clamp(56px, 7vw, 100px) 20px">
+    <div style="max-width: 1180px; margin: 0 auto">
+      <p style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: #d8a85a; margin: 0 0 14px">Clientes satisfeitos</p>
+      <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(28px, 4.4vw, 44px); letter-spacing: -0.015em; margin: 0 0 40px">Quem senta na cadeira, volta</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+        <sc-for list="{{ testimonials }}" as="t" hint-placeholder-count="3">
+          <blockquote style="margin: 0; background: #161513; border: 1px solid rgba(245,242,238,0.08); border-radius: 18px; padding: 28px 24px; display: grid; gap: 18px">
+            <p style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; line-height: 1.5; margin: 0; text-wrap: pretty">{{ t.quote }}</p>
+            <footer style="font-size: 14px; color: #79736c">{{ t.author }}</footer>
+          </blockquote>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: clamp(56px, 7vw, 96px) 20px; background: #d8a85a; color: #0e0d0c">
+    <div style="max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px">
+      <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.015em; margin: 0; max-width: 22ch">Sua próxima visita está a três toques de distância.</h2>
+      <button onClick="{{ openBooking }}" style="border: 0; cursor: pointer; background: #0e0d0c; color: #f5f2ee; font-family: 'DM Sans', sans-serif; font-size: 17px; padding: 18px 32px; border-radius: 999px" style-hover="background: #2a2724">Agendar agora</button>
+    </div>
+  </section>
+
+  <footer style="padding: 56px 20px 40px; background: #0b0a09">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px">
+      <div>
+        <p style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 12px">{{ brandName }}</p>
+        <p style="font-size: 15px; color: #79736c; margin: 0; line-height: 1.6">Beleza masculina com precisão.<br />Seg a Sáb.</p>
+      </div>
+      <div style="display: grid; gap: 10px; align-content: start">
+        <p style="font-size: 13px; color: #5f5952; margin: 0; letter-spacing: 0.1em; text-transform: uppercase">Navegue</p>
+        <a href="#servicos" style="font-size: 15px; color: #cfc9c1">Serviços</a>
+        <a href="#unidades" style="font-size: 15px; color: #cfc9c1">Unidades</a>
+        <a href="#galeria" style="font-size: 15px; color: #cfc9c1">Galeria</a>
+      </div>
+      <div style="display: grid; gap: 10px; align-content: start">
+        <p style="font-size: 13px; color: #5f5952; margin: 0; letter-spacing: 0.1em; text-transform: uppercase">Contato</p>
+        <a href="#top" style="font-size: 15px; color: #cfc9c1">@barbeariatech</a>
+        <a href="#top" style="font-size: 15px; color: #cfc9c1">WhatsApp</a>
+        <a href="#top" style="font-size: 15px; color: #cfc9c1">contato@barbeariatech.com</a>
+      </div>
+    </div>
+    <p style="max-width: 1180px; margin: 40px auto 0; padding-top: 22px; border-top: 1px solid rgba(245,242,238,0.08); font-size: 13px; color: #5f5952">© 2026 {{ brandName }}. Protótipo white label — todos os textos e imagens são substituíveis.</p>
+  </footer>
+
+  <sc-if value="{{ bookingOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 60; background: rgba(6,6,5,0.72); backdrop-filter: blur(6px); display: flex; align-items: flex-end; justify-content: center; animation: fadeIn 0.2s ease">
+      <div style="width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; background: #131211; border: 1px solid rgba(245,242,238,0.12); border-radius: 24px 24px 0 0; padding: 22px 22px 28px; animation: riseIn 0.28s ease both">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px">
+          <p style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #d8a85a; margin: 0">{{ stepLabel }}</p>
+          <button onClick="{{ closeBooking }}" aria-label="Fechar" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(245,242,238,0.14); background: transparent; color: #f5f2ee; cursor: pointer; font-size: 18px; line-height: 1">×</button>
+        </div>
+
+        <sc-if value="{{ isStepUnit }}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; gap: 12px">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin: 8px 0 6px">Onde você quer ser atendido?</h3>
+            <sc-for list="{{ unitChoices }}" as="u" hint-placeholder-count="4">
+              <button onClick="{{ u.select }}" style="{{ u.style }}">
+                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 17px">{{ u.name }}</span>
+                <span style="font-size: 14px; color: #a29c94">{{ u.address }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStepService }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 12px">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin: 8px 0 6px">Qual serviço?</h3>
+            <sc-for list="{{ serviceChoices }}" as="s" hint-placeholder-count="4">
+              <button onClick="{{ s.select }}" style="{{ s.style }}">
+                <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%">
+                  <span style="font-family: 'Space Grotesk', sans-serif; font-size: 17px">{{ s.name }}</span>
+                  <span style="color: #d8a85a; font-size: 15px">{{ s.priceLabel }}</span>
+                </span>
+                <span style="font-size: 14px; color: #a29c94">{{ s.duration }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStepTime }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 20px">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin: 8px 0 0">Dia e horário</h3>
+            <div style="display: grid; gap: 10px">
+              <p style="font-size: 13px; color: #79736c; margin: 0; letter-spacing: 0.08em; text-transform: uppercase">Profissional</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                <sc-for list="{{ barberChoices }}" as="b" hint-placeholder-count="3">
+                  <button onClick="{{ b.select }}" style="{{ b.style }}">{{ b.name }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: grid; gap: 10px">
+              <p style="font-size: 13px; color: #79736c; margin: 0; letter-spacing: 0.08em; text-transform: uppercase">Dia</p>
+              <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px">
+                <sc-for list="{{ dayChoices }}" as="d" hint-placeholder-count="6">
+                  <button onClick="{{ d.select }}" style="{{ d.style }}">
+                    <span style="display: block; font-size: 12px; color: #a29c94; text-transform: uppercase; letter-spacing: 0.08em">{{ d.weekday }}</span>
+                    <span style="display: block; font-family: 'Space Grotesk', sans-serif; font-size: 19px; margin-top: 4px">{{ d.day }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: grid; gap: 10px">
+              <p style="font-size: 13px; color: #79736c; margin: 0; letter-spacing: 0.08em; text-transform: uppercase">Horário</p>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px">
+                <sc-for list="{{ timeChoices }}" as="t" hint-placeholder-count="8">
+                  <button onClick="{{ t.select }}" disabled="{{ t.taken }}" style="{{ t.style }}">{{ t.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStepConfirm }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 16px">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin: 8px 0 0">Confirme seus dados</h3>
+            <div style="background: #1a1816; border: 1px solid rgba(245,242,238,0.08); border-radius: 14px; padding: 18px; display: grid; gap: 8px">
+              <sc-for list="{{ summary }}" as="row" hint-placeholder-count="4">
+                <div style="display: flex; justify-content: space-between; gap: 16px; font-size: 15px">
+                  <span style="color: #79736c">{{ row.label }}</span>
+                  <span style="text-align: right">{{ row.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <input value="{{ name }}" onChange="{{ setName }}" placeholder="Seu nome" style="width: 100%; min-height: 52px; background: #1a1816; border: 1px solid rgba(245,242,238,0.14); border-radius: 12px; padding: 14px 16px; color: #f5f2ee; font-family: 'DM Sans', sans-serif; font-size: 16px" />
+            <input value="{{ phone }}" onChange="{{ setPhone }}" placeholder="WhatsApp (11) 90000-0000" style="width: 100%; min-height: 52px; background: #1a1816; border: 1px solid rgba(245,242,238,0.14); border-radius: 12px; padding: 14px 16px; color: #f5f2ee; font-family: 'DM Sans', sans-serif; font-size: 16px" />
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStepDone }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; gap: 16px; padding: 12px 0 4px; justify-items: center; text-align: center">
+            <span style="width: 62px; height: 62px; border-radius: 50%; background: #d8a85a; color: #0e0d0c; display: grid; place-items: center; font-size: 28px">✓</span>
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; margin: 0">Horário reservado</h3>
+            <p style="font-size: 16px; color: #a29c94; margin: 0; line-height: 1.55; max-width: 34ch">{{ doneMessage }}</p>
+          </div>
+        </sc-if>
+
+        <div style="display: flex; gap: 10px; margin-top: 24px">
+          <sc-if value="{{ canGoBack }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ back }}" style="flex: 0 0 auto; min-height: 52px; padding: 14px 22px; border-radius: 14px; border: 1px solid rgba(245,242,238,0.18); background: transparent; color: #f5f2ee; cursor: pointer; font-size: 16px; font-family: 'DM Sans', sans-serif">Voltar</button>
+          </sc-if>
+          <button onClick="{{ primaryAction }}" disabled="{{ primaryDisabled }}" style="{{ primaryStyle }}">{{ primaryLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;brandName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Barbearia Tech&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showPrices&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const SERVICES = [
+  { name: "Corte de cabelo", duration: "45 min", price: 60, desc: "Máquina, tesoura e finalização. Consulta rápida de estilo antes de começar." },
+  { name: "Barba desenhada", duration: "30 min", price: 45, desc: "Toalha quente, navalha e hidratação. Contorno feito no detalhe." },
+  { name: "Combo corte + barba", duration: "1h 15min", price: 95, desc: "O pacote completo, com pausa para café entre os dois serviços." },
+  { name: "Kids e Teens", duration: "35 min", price: 50, desc: "Atendimento paciente para crianças e adolescentes, sem pressa." }
+];
+
+const UNITS = [
+  { name: "Unidade Centro", address: "Rua das Palmeiras, 120 — Centro", hours: "Seg–Sáb · 09h às 20h" },
+  { name: "Unidade Jardins", address: "Av. Bela Vista, 880 — Jardins", hours: "Seg–Sáb · 10h às 21h" },
+  { name: "Unidade Parque Norte", address: "Alameda Norte, 45 — Parque Norte", hours: "Ter–Sáb · 09h às 19h" },
+  { name: "Unidade Lago Sul", address: "Q. 12, Bloco C, Loja 4 — Lago Sul", hours: "Seg–Sex · 09h às 20h" }
+];
+
+const BARBERS = ["Sem preferência", "Rafa", "Téo", "Jonas"];
+const TIMES = ["09:00", "09:45", "10:30", "11:15", "13:00", "13:45", "14:30", "15:15", "16:00", "16:45", "17:30", "18:15"];
+const STEPS = ["unit", "service", "time", "confirm", "done"];
+
+class Component extends DCLogic {
+  state = {
+    width: typeof window !== "undefined" ? window.innerWidth : 1200,
+    menuOpen: false,
+    bookingOpen: false,
+    step: 0,
+    unit: null,
+    service: null,
+    barber: 0,
+    dayIndex: null,
+    time: null,
+    name: "",
+    phone: ""
+  };
+
+  componentDidMount() {
+    this._onResize = () => this.setState({ width: window.innerWidth });
+    window.addEventListener("resize", this._onResize);
+  }
+  componentWillUnmount() { window.removeEventListener("resize", this._onResize); }
+
+  days() {
+    const out = [];
+    const base = new Date();
+    for (let i = 0; i < 8; i++) {
+      const d = new Date(base.getTime() + i * 86400000);
+      out.push({
+        weekday: i === 0 ? "Hoje" : d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+        day: String(d.getDate()).padStart(2, "0"),
+        full: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })
+      });
+    }
+    return out;
+  }
+
+  pick(selected) {
+    return {
+      width: "100%", textAlign: "left", display: "grid", gap: 4, cursor: "pointer",
+      padding: "16px 18px", minHeight: 56, borderRadius: 14,
+      fontFamily: "'DM Sans', sans-serif", fontSize: 16,
+      background: selected ? "rgba(216,168,90,0.12)" : "#1a1816",
+      border: "1px solid " + (selected ? "#d8a85a" : "rgba(245,242,238,0.1)"),
+      color: "#f5f2ee"
+    };
+  }
+
+  chip(selected, extra) {
+    return Object.assign({
+      cursor: "pointer", padding: "12px 16px", minHeight: 46, borderRadius: 12, whiteSpace: "nowrap",
+      fontFamily: "'DM Sans', sans-serif", fontSize: 15,
+      background: selected ? "#d8a85a" : "#1a1816",
+      border: "1px solid " + (selected ? "#d8a85a" : "rgba(245,242,238,0.12)"),
+      color: selected ? "#0e0d0c" : "#f5f2ee"
+    }, extra || {});
+  }
+
+  set(patch) { this.setState(patch); }
+
+  renderVals() {
+    const s = this.state;
+    const step = STEPS[s.step];
+    const days = this.days();
+    const takenFor = (i) => (i === null ? [] : [TIMES[(i * 3) % TIMES.length], TIMES[(i * 5 + 2) % TIMES.length]]);
+    const taken = takenFor(s.dayIndex);
+
+    const open = (patch) => this.setState(Object.assign({ bookingOpen: true, menuOpen: false, step: 0 }, patch || {}));
+
+    const ready = {
+      unit: s.unit !== null,
+      service: s.service !== null,
+      time: s.dayIndex !== null && s.time !== null,
+      confirm: s.name.trim().length > 1 && s.phone.trim().length > 5,
+      done: true
+    }[step];
+
+    const labels = { unit: "Passo 1 de 4 · Unidade", service: "Passo 2 de 4 · Serviço", time: "Passo 3 de 4 · Horário", confirm: "Passo 4 de 4 · Dados", done: "Agendamento confirmado" };
+    const primaryLabel = { unit: "Continuar", service: "Continuar", time: "Continuar", confirm: "Confirmar agendamento", done: "Fechar" }[step];
+
+    const svc = s.service !== null ? SERVICES[s.service] : null;
+
+    return {
+      brandName: this.props.brandName ?? "Barbearia Tech",
+      isMobile: s.width < 860,
+      isDesktop: s.width >= 860,
+      menuOpen: s.menuOpen && s.width < 860,
+      toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
+      closeMenu: () => this.setState({ menuOpen: false }),
+      openBooking: () => open(),
+      closeBooking: () => this.setState({ bookingOpen: false }),
+
+      services: SERVICES.map((x, i) => ({
+        name: x.name, duration: x.duration, desc: x.desc,
+        priceLabel: (this.props.showPrices ?? true) ? "R$ " + x.price : "sob consulta",
+        book: () => open({ service: i, step: 0 })
+      })),
+      units: UNITS.map((u, i) => ({ name: u.name, address: u.address, hours: u.hours, book: () => open({ unit: i }) })),
+      gallery: ["[ ambiente da loja ]", "[ corte finalizado ]", "[ detalhe navalha ]", "[ pai e filho ]", "[ cadeira e espelho ]", "[ equipe ]"],
+      testimonials: [
+        { quote: "Ambiente descontraído e moderno. Atendimento excelente e profissionais muito qualificados.", author: "Leonardo A." },
+        { quote: "Corte feito com bastante cuidado, esteticamente perfeito. Marquei pelo celular em um minuto.", author: "Gustavo L." },
+        { quote: "Levo meu filho desde os 4 anos. Paciência e capricho em todo atendimento.", author: "Marcos V." }
+      ],
+
+      bookingOpen: s.bookingOpen,
+      stepLabel: labels[step],
+      isStepUnit: step === "unit",
+      isStepService: step === "service",
+      isStepTime: step === "time",
+      isStepConfirm: step === "confirm",
+      isStepDone: step === "done",
+
+      unitChoices: UNITS.map((u, i) => ({ name: u.name, address: u.address, style: this.pick(s.unit === i), select: () => this.setState({ unit: i }) })),
+      serviceChoices: SERVICES.map((x, i) => ({
+        name: x.name, duration: x.duration,
+        priceLabel: (this.props.showPrices ?? true) ? "R$ " + x.price : "—",
+        style: this.pick(s.service === i), select: () => this.setState({ service: i })
+      })),
+      barberChoices: BARBERS.map((b, i) => ({ name: b, style: this.chip(s.barber === i), select: () => this.setState({ barber: i }) })),
+      dayChoices: days.map((d, i) => ({
+        weekday: d.weekday, day: d.day,
+        style: this.chip(s.dayIndex === i, { minWidth: 72, textAlign: "center", padding: "10px 12px" }),
+        select: () => this.setState({ dayIndex: i, time: null })
+      })),
+      timeChoices: TIMES.map((t) => {
+        const isTaken = taken.indexOf(t) > -1;
+        return {
+          label: t, taken: isTaken,
+          style: this.chip(s.time === t, isTaken ? { opacity: 0.3, cursor: "not-allowed", textDecoration: "line-through" } : { textAlign: "center" }),
+          select: () => { if (!isTaken) this.setState({ time: t }); }
+        };
+      }),
+
+      summary: [
+        { label: "Unidade", value: s.unit !== null ? UNITS[s.unit].name : "—" },
+        { label: "Serviço", value: svc ? svc.name : "—" },
+        { label: "Profissional", value: BARBERS[s.barber] },
+        { label: "Quando", value: (s.dayIndex !== null ? days[s.dayIndex].full : "—") + (s.time ? " · " + s.time : "") },
+        { label: "Total", value: svc && (this.props.showPrices ?? true) ? "R$ " + svc.price : "a combinar" }
+      ],
+      name: s.name,
+      phone: s.phone,
+      setName: (e) => this.setState({ name: e.target.value }),
+      setPhone: (e) => this.setState({ phone: e.target.value }),
+
+      doneMessage: (s.name.split(" ")[0] || "Tudo certo") + ", esperamos você na " + (s.unit !== null ? UNITS[s.unit].name : "unidade") + " em " + (s.dayIndex !== null ? days[s.dayIndex].full : "breve") + (s.time ? " às " + s.time : "") + ". Enviamos a confirmação no WhatsApp.",
+
+      canGoBack: s.step > 0 && step !== "done",
+      back: () => this.setState({ step: Math.max(0, s.step - 1) }),
+      primaryLabel: primaryLabel,
+      primaryDisabled: !ready,
+      primaryStyle: {
+        flex: 1, minHeight: 52, borderRadius: 14, border: 0, cursor: ready ? "pointer" : "not-allowed",
+        background: ready ? "#d8a85a" : "rgba(245,242,238,0.12)",
+        color: ready ? "#0e0d0c" : "#79736c",
+        fontFamily: "'DM Sans', sans-serif", fontSize: 17
+      },
+      primaryAction: () => {
+        if (!ready) return;
+        if (step === "done") this.setState({ bookingOpen: false, step: 0, time: null, dayIndex: null, name: "", phone: "" });
+        else this.setState({ step: s.step + 1 });
+      }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

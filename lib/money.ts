@@ -1,0 +1,7 @@
+/** Centavos → "R$ 95,00". */
+export function formatBRL(cents: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(cents / 100);
+}

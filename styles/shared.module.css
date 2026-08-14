@@ -1,0 +1,33 @@
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+}
+
+.section {
+  padding: var(--section-padding);
+}
+
+/* Segunda superfície da tela (README: no máximo 2 fundos por tela). */
+.sectionAlt {
+  background: var(--surface-1);
+  border-top: 1px solid var(--border-07);
+}
+
+.eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 14px;
+}
+
+/* Placeholder listrado com legenda mono — hero, galeria e fachadas. */
+.placeholderCaption {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: var(--muted-3);
+  text-align: center;
+  letter-spacing: 0.06em;
+  margin: 0;
+}

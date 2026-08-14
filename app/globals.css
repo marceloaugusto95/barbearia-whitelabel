@@ -1,0 +1,120 @@
+/* Tokens do design system (README › Design Tokens). Acento vem da config da marca. */
+:root {
+  --bg: #0e0d0c;
+  --surface-1: #131211;
+  --surface-2: #161513;
+  --surface-3: #1a1816;
+  --surface-4: #1b1917;
+  --surface-5: #211e1b;
+  --surface-hero: #171614;
+  --surface-footer: #0b0a09;
+
+  --text: #f5f2ee;
+  --text-soft: #cfc9c1;
+  --muted: #a29c94;
+  --muted-2: #79736c;
+  --muted-3: #6f6862;
+  --muted-4: #5f5952;
+
+  --border-07: rgba(245, 242, 238, 0.07);
+  --border-08: rgba(245, 242, 238, 0.08);
+  --border-09: rgba(245, 242, 238, 0.09);
+  --border-10: rgba(245, 242, 238, 0.1);
+  --border-12: rgba(245, 242, 238, 0.12);
+  --border-14: rgba(245, 242, 238, 0.14);
+  --border-16: rgba(245, 242, 238, 0.16);
+  --border-18: rgba(245, 242, 238, 0.18);
+  --border-20: rgba(245, 242, 238, 0.2);
+
+  --header-bg: rgba(14, 13, 12, 0.82);
+  --overlay: rgba(6, 6, 5, 0.72);
+
+  --container: 1180px;
+  --section-padding: clamp(56px, 7vw, 100px) 20px;
+
+  /* Placeholders listrados — substituir por fotos reais. */
+  --stripe-hero: repeating-linear-gradient(135deg, #1b1917 0 14px, #171614 14px 28px);
+  --stripe-square: repeating-linear-gradient(135deg, #1b1917 0 12px, #161513 12px 24px);
+  --stripe-wide: repeating-linear-gradient(135deg, #211e1b 0 12px, #1b1917 12px 24px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Barra de progresso do checkout — a duração vem do delay simulado. */
+@keyframes progressFill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

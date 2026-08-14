@@ -1,0 +1,39 @@
+.band {
+  padding: clamp(56px, 7vw, 96px) 20px;
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.title {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-size: clamp(26px, 4vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0;
+  max-width: 22ch;
+}
+
+.button {
+  border: 0;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 17px;
+  padding: 18px 32px;
+  border-radius: 999px;
+}
+
+.button:hover {
+  background: #2a2724;
+}

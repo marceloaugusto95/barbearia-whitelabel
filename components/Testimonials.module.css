@@ -1,0 +1,38 @@
+.title {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 4.4vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 40px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  margin: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border-08);
+  border-radius: 18px;
+  padding: 28px 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.quote {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.author {
+  font-size: 14px;
+  color: var(--muted-2);
+}

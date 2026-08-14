@@ -1,0 +1,84 @@
+.title {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 4.4vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 44px;
+  max-width: 22ch;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface-3);
+  border: 1px solid var(--border-08);
+  border-radius: 18px;
+  padding: 26px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card:hover {
+  border-color: rgba(216, 168, 90, 0.5);
+}
+
+.duration {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--muted-2);
+  margin: 0;
+}
+
+.name {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 500;
+  font-size: 21px;
+  margin: 0;
+}
+
+.description {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
+  flex: 1;
+  text-wrap: pretty;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.price {
+  font-family: var(--font-display), sans-serif;
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.cta {
+  border: 1px solid var(--border-18);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  min-height: 44px;
+}
+
+.cta:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
