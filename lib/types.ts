@@ -142,6 +142,11 @@ export type Appointment = {
   paymentIntentId: string | null;
 };
 
+/** O que o painel e o checkout realmente alteram num agendamento. */
+export type AppointmentPatch = Partial<
+  Pick<Appointment, "status" | "paymentState" | "date" | "time" | "paymentIntentId">
+>;
+
 /* ---------- Equipe (acesso ao dashboard) ---------- */
 
 export type StaffRole = "admin" | "barber";

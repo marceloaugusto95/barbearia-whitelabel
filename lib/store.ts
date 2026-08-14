@@ -1,129 +1,58 @@
-import { ensureSchema, sql } from "@/lib/db";
-import type { Appointment } from "@/lib/types";
+import * as fileStore from "@/lib/store/file";
+import * as postgresStore from "@/lib/store/postgres";
+import type { Appointment, AppointmentPatch } from "@/lib/types";
 
 /**
- * Repositório de agendamentos em Postgres.
- * É a única porta de entrada para a agenda — o resto do app só conhece estas
- * funções, então trocar de banco é trocar este arquivo.
+ * Porta de entrada única da agenda. O resto do app só conhece estas funções —
+ * trocar de banco é trocar a implementação escolhida aqui.
+ *
+ * - Com `DATABASE_URL` → Postgres (Neon). É o caminho de produção.
+ * - Sem `DATABASE_URL`, fora de produção → arquivo JSON em `.data/`, para
+ *   `npm run dev` funcionar sem provisionar nada.
+ * - Sem `DATABASE_URL` **em produção** → erro na cara, de propósito: gravar em
+ *   disco efêmero na Vercel perderia agendamento de cliente em silêncio.
  */
+function backend() {
+  if (process.env.DATABASE_URL) return postgresStore;
 
-type Row = {
-  id: string;
-  created_at: Date | string;
-  unit_id: string;
-  service_id: string;
-  barber_id: string | null;
-  appointment_date: string;
-  appointment_time: string;
-  customer_name: string;
-  customer_phone: string;
-  payment_method: Appointment["paymentMethod"];
-  payment_state: Appointment["paymentState"];
-  amount: number;
-  status: Appointment["status"];
-  payment_intent_id: string | null;
-};
-
-function toAppointment(row: Row): Appointment {
-  return {
-    id: row.id,
-    createdAt:
-      row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
-    unitId: row.unit_id,
-    serviceId: row.service_id,
-    barberId: row.barber_id,
-    date: row.appointment_date,
-    time: row.appointment_time,
-    customerName: row.customer_name,
-    customerPhone: row.customer_phone,
-    paymentMethod: row.payment_method,
-    paymentState: row.payment_state,
-    amount: row.amount,
-    status: row.status,
-    paymentIntentId: row.payment_intent_id,
-  };
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "DATABASE_URL ausente em produção. Provisione o Postgres (vercel integration add neon) — a agenda não pode viver em disco efêmero.",
+    );
+  }
+  return fileStore;
 }
 
-export async function listAppointments(): Promise<Appointment[]> {
-  await ensureSchema();
-  const rows = (await sql()`
-    select * from appointments
-    order by appointment_date desc, appointment_time desc
-  `) as Row[];
-  return rows.map(toAppointment);
+export function listAppointments(): Promise<Appointment[]> {
+  return backend().listAppointments();
 }
 
-export async function getAppointment(id: string): Promise<Appointment | null> {
-  await ensureSchema();
-  const rows = (await sql()`select * from appointments where id = ${id}`) as Row[];
-  return rows[0] ? toAppointment(rows[0]) : null;
+export function getAppointment(id: string): Promise<Appointment | null> {
+  return backend().getAppointment(id);
 }
 
-export async function createAppointment(
+export function createAppointment(
   data: Omit<Appointment, "id" | "createdAt">,
 ): Promise<Appointment> {
-  await ensureSchema();
-  const rows = (await sql()`
-    insert into appointments (
-      id, unit_id, service_id, barber_id, appointment_date, appointment_time,
-      customer_name, customer_phone, payment_method, payment_state, amount,
-      status, payment_intent_id
-    ) values (
-      ${crypto.randomUUID()}, ${data.unitId}, ${data.serviceId}, ${data.barberId},
-      ${data.date}, ${data.time}, ${data.customerName}, ${data.customerPhone},
-      ${data.paymentMethod}, ${data.paymentState}, ${data.amount},
-      ${data.status}, ${data.paymentIntentId}
-    )
-    returning *
-  `) as Row[];
-  return toAppointment(rows[0]);
+  return backend().createAppointment(data);
 }
 
-/** Campos que o painel e o checkout realmente alteram. */
-type AppointmentPatch = Partial<
-  Pick<Appointment, "status" | "paymentState" | "date" | "time" | "paymentIntentId">
->;
-
-export async function updateAppointment(
+export function updateAppointment(
   id: string,
   patch: AppointmentPatch,
 ): Promise<Appointment | null> {
-  await ensureSchema();
-  const rows = (await sql()`
-    update appointments set
-      status = coalesce(${patch.status ?? null}, status),
-      payment_state = coalesce(${patch.paymentState ?? null}, payment_state),
-      appointment_date = coalesce(${patch.date ?? null}, appointment_date),
-      appointment_time = coalesce(${patch.time ?? null}, appointment_time),
-      payment_intent_id = coalesce(${patch.paymentIntentId ?? null}, payment_intent_id)
-    where id = ${id}
-    returning *
-  `) as Row[];
-  return rows[0] ? toAppointment(rows[0]) : null;
+  return backend().updateAppointment(id, patch);
 }
 
 /** Marca como pago o agendamento ligado a uma intenção de pagamento aprovada. */
-export async function markPaidByIntent(intentId: string): Promise<Appointment | null> {
-  await ensureSchema();
-  const rows = (await sql()`
-    update appointments set payment_state = 'paid'
-    where payment_intent_id = ${intentId} and payment_state <> 'paid'
-    returning *
-  `) as Row[];
-  return rows[0] ? toAppointment(rows[0]) : null;
+export function markPaidByIntent(intentId: string): Promise<Appointment | null> {
+  return backend().markPaidByIntent(intentId);
 }
 
 /** Agendamentos que ocupam a agenda de um dia (cancelados liberam o horário). */
-export async function activeAppointmentsOn(
+export function activeAppointmentsOn(
   unitId: string,
   date: string,
 ): Promise<Appointment[]> {
-  await ensureSchema();
-  const rows = (await sql()`
-    select * from appointments
-    where unit_id = ${unitId}
-      and appointment_date = ${date}
-      and status <> 'cancelled'
-  `) as Row[];
-  return rows.map(toAppointment);
+  return backend().activeAppointmentsOn(unitId, date);
 }
