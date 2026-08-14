@@ -153,8 +153,14 @@ horário que já passou hoje não aparece.
 - Repositório privado: `marceloaugusto95/barbearia-whitelabel`.
 - Projeto na Vercel: `barbeariatech` — https://barbeariatech.vercel.app · painel em `/admin`.
   Push na `main` dispara deploy.
-- Banco: Neon Postgres pelo Marketplace (`vercel integration add neon`), que injeta
+- Banco: Neon Postgres pelo Marketplace, recurso `neon-lime-field`, que injeta
   `DATABASE_URL` sozinho.
+- **`vercel env pull` traz a mesma `DATABASE_URL` para o `.env.local`**: rodando local, você
+  escreve no banco de produção. Antes de mexer de verdade, crie uma branch do Neon para
+  desenvolvimento — ou apague a `DATABASE_URL` do `.env.local` e o app volta ao arquivo em
+  `.data/`.
+- Ao gravar variáveis pela CLI use `vercel env add NOME production --value "…"`. Mandar o
+  valor por pipe grava **vazio** e a CLI ainda diz que deu certo.
 - Variáveis em Production e Preview: `AUTH_SECRET`, `STAFF_PASSWORD_ADMIN`,
   `STAFF_PASSWORD_RAFA`, `STAFF_PASSWORD_TEO`, `STAFF_PASSWORD_JONAS`, `SEED_DEMO_DATA`.
 - Domínio próprio: nada configurado ainda; ligar depois em Settings → Domains não exige
