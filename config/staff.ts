@@ -34,6 +34,15 @@ export const staff: StaffUser[] = [
  */
 export const DEMO_PASSWORD = "barbearia123";
 
+/**
+ * A senha de demonstração está mesmo valendo para alguém?
+ * A tela de login só mostra a dica quando a resposta é sim — senão ela mentiria
+ * para quem já configurou as senhas de verdade.
+ */
+export function demoPasswordInUse(): string | null {
+  return staff.some((user) => passwordFor(user) === DEMO_PASSWORD) ? DEMO_PASSWORD : null;
+}
+
 export function passwordFor(user: StaffUser): string | null {
   // `.trim()` porque valor colado no painel costuma vir com espaço ou quebra
   // de linha grudada — e aí o login falha sem explicação.
