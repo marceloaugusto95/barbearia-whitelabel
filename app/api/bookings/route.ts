@@ -50,13 +50,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Nome ou telefone inválido." }, { status: 400 });
   }
 
-  if (!(await isSlotAvailable({ unitId, barberId, date, time }))) {
-    return NextResponse.json(
-      { error: "Este horário acabou de ser ocupado." },
-      { status: 409 },
-    );
-  }
+  const taken = NextResponse.json(
+    { error: "Este horário acabou de ser ocupado." },
+    { status: 409 },
+  );
 
+  if (!(await isSlotAvailable({ unitId, barberId, date, time }))) return taken;
+
+  // A gravação checa a vaga de novo, de forma atômica: quem perdeu a corrida recebe null.
   const appointment = await createAppointment({
     unitId,
     serviceId,
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
     status: "confirmed",
     paymentIntentId: null,
   });
+  if (!appointment) return taken;
 
   return NextResponse.json({ id: appointment.id, status: "confirmed" });
 }

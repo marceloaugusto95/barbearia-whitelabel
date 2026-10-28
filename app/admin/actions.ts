@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isSlotAvailable } from "@/lib/availability";
 import { createSession, destroySession, getSession, verifyCredentials } from "@/lib/auth";
-import { getAppointment, updateAppointment } from "@/lib/store";
+import {
+  getAppointment,
+  rescheduleAppointment as moveAppointment,
+  updateAppointment,
+} from "@/lib/store";
 import type { Appointment } from "@/lib/types";
 
 export type ActionState = { error?: string } | null;
@@ -83,7 +87,9 @@ export async function rescheduleAppointment(
   });
   if (!free) return { error: "taken" };
 
-  await updateAppointment(appointment.id, { date, time, status: "confirmed" });
+  // Recheca de forma atômica: outro agendamento pode ter entrado no meio.
+  const moved = await moveAppointment(appointment.id, date, time);
+  if (!moved) return { error: "taken" };
   refresh();
   return null;
 }

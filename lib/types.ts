@@ -148,8 +148,9 @@ export type Appointment = {
 };
 
 /** O que o painel e o checkout realmente alteram num agendamento. */
+/** Dia e horário não entram aqui: mudam só por `rescheduleAppointment`, que checa a vaga. */
 export type AppointmentPatch = Partial<
-  Pick<Appointment, "status" | "paymentState" | "date" | "time" | "paymentIntentId">
+  Pick<Appointment, "status" | "paymentState" | "paymentIntentId">
 >;
 
 /* ---------- Equipe (acesso ao dashboard) ---------- */

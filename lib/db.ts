@@ -67,6 +67,22 @@ async function initialize() {
     create index if not exists appointments_intent_idx
       on appointments (payment_intent_id)
   `;
+  // Trava no banco: o mesmo profissional não pega duas vezes o mesmo horário.
+  // O "sem preferência" (barber_id nulo) fica com o lock de `lib/store/postgres.ts`.
+  try {
+    await db`
+      create unique index if not exists appointments_barber_slot_uq
+        on appointments (unit_id, appointment_date, appointment_time, barber_id)
+        where barber_id is not null and status <> 'cancelled'
+    `;
+  } catch (error) {
+    // Base antiga com duplicata já gravada: segue só com o lock até alguém
+    // cancelar uma das duas e reiniciar — não derruba o site por isso.
+    if ((error as { code?: string }).code !== "23505") throw error;
+    console.error(
+      "appointments_barber_slot_uq não criado: já existem agendamentos duplicados. Cancele um de cada par e reinicie.",
+    );
+  }
 
   if (process.env.SEED_DEMO_DATA === "false") return;
 

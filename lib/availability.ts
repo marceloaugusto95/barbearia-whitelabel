@@ -1,5 +1,6 @@
 import { brand } from "@/config/brand";
 import { minutesNow, todayIso } from "@/lib/clock";
+import { hasRoom } from "@/lib/occupancy";
 import { activeAppointmentsOn } from "@/lib/store";
 import type { Slot } from "@/lib/types";
 
@@ -20,19 +21,14 @@ export async function getAvailability(params: {
   if (!unit) return [];
 
   const booked = await activeAppointmentsOn(params.unitId, params.date);
-  const capacity = Math.max(brand.barbers.length, 1);
   const isToday = params.date === todayIso();
   const now = minutesNow();
 
   return unit.slots.map((time) => {
     const atThisTime = booked.filter((appointment) => appointment.time === time);
-    const full = atThisTime.length >= capacity;
-    const barberBusy =
-      params.barberId !== null &&
-      atThisTime.some((appointment) => appointment.barberId === params.barberId);
     const past = isToday && toMinutes(time) <= now;
 
-    return { time, available: !full && !barberBusy && !past };
+    return { time, available: hasRoom(atThisTime, params.barberId) && !past };
   });
 }
 
@@ -41,7 +37,10 @@ function toMinutes(time: string) {
   return hours * 60 + minutes;
 }
 
-/** Um horário específico ainda está livre? Usado ao agendar e ao reagendar. */
+/**
+ * Um horário específico ainda está livre? Pré-checagem ao agendar e ao
+ * reagendar — quem garante contra corrida é a gravação (`lib/store`).
+ */
 export async function isSlotAvailable(params: {
   unitId: string;
   barberId: string | null;
@@ -58,11 +57,5 @@ export async function isSlotAvailable(params: {
       appointment.id !== params.ignoreAppointmentId && appointment.time === params.time,
   );
 
-  const capacity = Math.max(brand.barbers.length, 1);
-  if (booked.length >= capacity) return false;
-
-  return !(
-    params.barberId !== null &&
-    booked.some((appointment) => appointment.barberId === params.barberId)
-  );
+  return hasRoom(booked, params.barberId);
 }

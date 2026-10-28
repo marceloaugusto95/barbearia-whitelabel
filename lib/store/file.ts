@@ -1,5 +1,6 @@
 ﻿import { promises as fs } from "node:fs";
 import path from "node:path";
+import { hasRoom, isActive } from "@/lib/occupancy";
 import { seedAppointments } from "@/lib/seed";
 import type { Appointment, AppointmentPatch } from "@/lib/types";
 
@@ -49,11 +50,31 @@ export async function getAppointment(id: string): Promise<Appointment | null> {
   return all.find((appointment) => appointment.id === id) ?? null;
 }
 
+/** Agendamentos ativos num horário — `ignoreId` tira o próprio, ao reagendar. */
+function sameSlot(
+  all: Appointment[],
+  slot: { unitId: string; date: string; time: string },
+  ignoreId?: string,
+) {
+  return all.filter(
+    (appointment) =>
+      isActive(appointment) &&
+      appointment.id !== ignoreId &&
+      appointment.unitId === slot.unitId &&
+      appointment.date === slot.date &&
+      appointment.time === slot.time,
+  );
+}
+
+/** A checagem roda dentro da fila, então duas gravações não passam juntas. */
 export function createAppointment(
   data: Omit<Appointment, "id" | "createdAt">,
-): Promise<Appointment> {
+  capacity: number,
+): Promise<Appointment | null> {
   return serialize(async () => {
     const all = await readFile();
+    if (!hasRoom(sameSlot(all, data), data.barberId, capacity)) return null;
+
     const appointment: Appointment = {
       ...data,
       id: crypto.randomUUID(),
@@ -74,6 +95,29 @@ export function updateAppointment(
     if (index === -1) return null;
 
     const updated = { ...all[index], ...patch } as Appointment;
+    const next = [...all];
+    next[index] = updated;
+    await writeFile(next);
+    return updated;
+  });
+}
+
+export function rescheduleAppointment(
+  id: string,
+  date: string,
+  time: string,
+  capacity: number,
+): Promise<Appointment | null> {
+  return serialize(async () => {
+    const all = await readFile();
+    const index = all.findIndex((appointment) => appointment.id === id);
+    if (index === -1) return null;
+
+    const current = all[index];
+    const taken = sameSlot(all, { unitId: current.unitId, date, time }, id);
+    if (!hasRoom(taken, current.barberId, capacity)) return null;
+
+    const updated: Appointment = { ...current, date, time, status: "confirmed" };
     const next = [...all];
     next[index] = updated;
     await writeFile(next);
@@ -106,8 +150,6 @@ export async function activeAppointmentsOn(
   const all = await listAppointments();
   return all.filter(
     (appointment) =>
-      appointment.unitId === unitId &&
-      appointment.date === date &&
-      appointment.status !== "cancelled",
+      appointment.unitId === unitId && appointment.date === date && isActive(appointment),
   );
 }

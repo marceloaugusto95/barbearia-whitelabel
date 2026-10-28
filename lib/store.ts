@@ -1,3 +1,4 @@
+import { slotCapacity } from "@/lib/occupancy";
 import * as fileStore from "@/lib/store/file";
 import * as postgresStore from "@/lib/store/postgres";
 import type { Appointment, AppointmentPatch } from "@/lib/types";
@@ -31,10 +32,27 @@ export function getAppointment(id: string): Promise<Appointment | null> {
   return backend().getAppointment(id);
 }
 
+/**
+ * Grava o agendamento se o horário ainda couber, numa operação só (checagem +
+ * escrita). Devolve `null` quando alguém ocupou a vaga antes.
+ */
 export function createAppointment(
   data: Omit<Appointment, "id" | "createdAt">,
-): Promise<Appointment> {
-  return backend().createAppointment(data);
+): Promise<Appointment | null> {
+  return backend().createAppointment(data, slotCapacity());
+}
+
+/**
+ * Move o agendamento para outro dia/horário da mesma unidade e o reconfirma,
+ * com a mesma garantia do `createAppointment`. `null` = vaga ocupada (ou id
+ * inexistente).
+ */
+export function rescheduleAppointment(
+  id: string,
+  date: string,
+  time: string,
+): Promise<Appointment | null> {
+  return backend().rescheduleAppointment(id, date, time, slotCapacity());
 }
 
 export function updateAppointment(
