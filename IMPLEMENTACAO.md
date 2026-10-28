@@ -41,8 +41,10 @@ components/
   admin/                AdminNav, AppointmentCard, RescheduleForm, SubmitButton, admin.module.css
 lib/
   types.ts  dates.ts  money.ts  api.ts
-  store.ts              repositório de agendamentos (JSON em .data/)
+  store.ts              porta única da agenda: Postgres (store/postgres.ts) ou JSON em .data/ (store/file.ts)
+  db.ts                 conexão com o Neon e criação da tabela/índices
   seed.ts               histórico de demonstração
+  occupancy.ts          regra de ocupação de um horário (capacidade + profissional)
   availability.ts       grade da unidade menos o que já está agendado
   metrics.ts            indicadores do painel
   auth.ts  payments.ts
@@ -73,7 +75,9 @@ no sucesso reseta dia, hora, nome e telefone e volta ao passo 1.
 - `GET /api/availability?unitId&date&barberId` — a grade da unidade menos o que já está
   agendado (`lib/availability.ts`, lendo a agenda gravada).
 - `POST /api/bookings` — valida, grava na agenda (de onde o painel lê) e devolve
-  `{ id, status: "confirmed" }`. **Não envia WhatsApp**: plugue aqui o disparo da confirmação.
+  `{ id, status: "confirmed" }`. Se a vaga foi ocupada no meio do caminho, responde **409**
+  "Este horário acabou de ser ocupado." (ver [Horário duplicado](#horário-duplicado)).
+  **Não envia WhatsApp**: plugue aqui o disparo da confirmação.
 
 ## Pagamento (checkout simulado)
 
@@ -123,7 +127,8 @@ futuro não é receita e cancelado não conta:
 - faturamento por barbeiro no mês, com barra proporcional, contagem e ticket.
 
 Ações em cada agendamento: **marcar como atendido** (o que também liquida quem paga na
-unidade), **reagendar** (data + horários realmente livres, validados de novo no servidor) e
+unidade), **reagendar** (data + horários realmente livres, validados de novo no servidor, com a
+mesma proteção contra corrida do agendamento) e
 **cancelar**. Barbeiro só age na própria agenda — a checagem é no servidor, dentro da action.
 A tela de agendamentos filtra por período, situação, unidade e profissional.
 
@@ -147,6 +152,39 @@ Rodando local, é preciso ter as variáveis do banco: `vercel env pull .env.loca
 Com a agenda gravada, a disponibilidade deixou de ser simulada: o horário some quando o
 profissional já tem atendimento, "sem preferência" só some quando todos estão ocupados, e
 horário que já passou hoje não aparece.
+
+### Horário duplicado
+
+A regra de ocupação mora em `lib/occupancy.ts` (`hasRoom`) e vale igual na grade e na
+gravação: no mesmo horário cabem tantos atendimentos quanto profissionais, e um profissional
+escolhido não pode já ter atendimento ali. Cancelados não ocupam.
+
+Checar a grade e depois gravar deixava uma janela: dois clientes confirmando juntos passavam
+os dois. Por isso a checagem que vale é a da **gravação** — `createAppointment` e
+`rescheduleAppointment` devolvem `null` quando a vaga acabou, e a API/action responde
+"ocupado". O `isSlotAvailable` antes delas é só pré-checagem.
+
+- **Postgres** (`lib/store/postgres.ts`), em duas camadas:
+  1. Cada gravação é uma transação que primeiro pega um advisory lock da chave
+     `unidade|dia|horário`; quem chega junto espera. Em seguida o `insert`/`update` só
+     acontece se a regra, repetida em SQL, ainda for verdadeira. É isso que protege o
+     "sem preferência" (`barber_id` nulo), que um índice não consegue expressar.
+  2. Índice único parcial `appointments_barber_slot_uq` em
+     `(unit_id, appointment_date, appointment_time, barber_id)`, para `barber_id` não nulo e
+     status diferente de `cancelled`: o banco recusa o mesmo profissional duas vezes no mesmo
+     horário mesmo se algum caminho novo esquecer o lock. A violação (`23505`) vira "ocupado".
+- **Arquivo JSON** (`lib/store/file.ts`): a checagem roda dentro da fila de escrita.
+- Dia e horário não passam mais por `updateAppointment` (`AppointmentPatch` não tem esses
+  campos): mudar de horário é sempre `rescheduleAppointment`.
+- Ao criar uma gravação nova que ocupe horário, use a mesma chave de lock (`slotLock`) e a
+  mesma regra, senão um caminho não espera o outro.
+- O índice é criado pelo `ensureSchema`. Se a base já tiver duplicatas, ele não é criado: o
+  app segue só com o lock e loga `appointments_barber_slot_uq não criado`. Cancele um de cada
+  par e reinicie.
+
+Testado com transações simultâneas no Neon (10 pedidos iguais → 1 grava; 10 "sem
+preferência" → 3; reagendamentos concorrentes idem) e com `insert` direto duplicado, barrado
+pelo índice.
 
 ## Deploy
 
